@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Oxanium", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Rajdhani", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+  --color-bg: #07080a;
+  --color-surface: #101216;
+  --color-elevated: #171b22;
+  --color-fg: #ece6d8;
+  --color-muted: #9a9284;
+  --color-subtle: #6f6a62;
+  --color-accent: #c8aa6e;
+  --color-accent-fg: #140f08;
+  --color-border: color-mix(in oklab, #ece6d8 12%, transparent);
+  --color-border-strong: color-mix(in oklab, #ece6d8 22%, transparent);
+  --color-live: #7eb8b4;
+  --color-danger: #c45c4a;
+  --color-ok: #7d9a6e;
+  --color-warn: #c4a06a;
+  --color-ring: #c8aa6e;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-2xl: 22px;
+
+  --shadow-border: 0 0 0 1px color-mix(in oklab, #ece6d8 8%, transparent);
+  --shadow-border-hover: 0 0 0 1px color-mix(in oklab, #c8aa6e 35%, transparent);
+
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 40%, transparent);
+    color: var(--color-fg);
+  }
+
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+}
+
+@layer utilities {
+  .void-field {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(1200px 500px at 12% -10%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent 55%),
+      linear-gradient(color-mix(in oklab, var(--color-fg) 3.5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 3.5%, transparent) 1px, transparent 1px);
+    background-size: auto, 56px 56px, 56px 56px;
+  }
+
+  .hairline {
+    box-shadow: var(--shadow-border);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
