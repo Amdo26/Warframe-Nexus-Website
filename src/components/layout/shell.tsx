@@ -3,6 +3,7 @@ import {
   BookOpen,
   Compass,
   Crosshair,
+  ListChecks,
   Menu,
   Search,
   Shield,
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/", label: "Command", icon: Compass },
   { to: "/world", label: "World", icon: Crosshair },
+  { to: "/weeklies", label: "Weeklies", icon: ListChecks },
   { to: "/codex", label: "Codex", icon: BookOpen },
   { to: "/market", label: "Market", icon: Store },
   { to: "/relics", label: "Relics", icon: Sparkles },

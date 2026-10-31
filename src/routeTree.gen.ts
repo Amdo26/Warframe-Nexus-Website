@@ -14,6 +14,7 @@ import { Route as ArsenalRouteImport } from './routes/arsenal'
 import { Route as CodexRouteImport } from './routes/codex'
 import { Route as MarketRouteImport } from './routes/market'
 import { Route as RelicsRouteImport } from './routes/relics'
+import { Route as WeekliesRouteImport } from './routes/weeklies'
 import { Route as WorldRouteImport } from './routes/world'
 import { Route as CodexIndexRouteImport } from './routes/codex.index'
 import { Route as CodexSlugRouteImport } from './routes/codex.$slug'
@@ -43,6 +44,11 @@ const MarketRoute = MarketRouteImport.update({
 const RelicsRoute = RelicsRouteImport.update({
   id: '/relics',
   path: '/relics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WeekliesRoute = WeekliesRouteImport.update({
+  id: '/weeklies',
+  path: '/weeklies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorldRoute = WorldRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/codex': typeof CodexRouteWithChildren
   '/market': typeof MarketRouteWithChildren
   '/relics': typeof RelicsRoute
+  '/weeklies': typeof WeekliesRoute
   '/world': typeof WorldRoute
   '/codex/$slug': typeof CodexSlugRoute
   '/market/$slug': typeof MarketSlugRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/arsenal': typeof ArsenalRoute
   '/relics': typeof RelicsRoute
+  '/weeklies': typeof WeekliesRoute
   '/world': typeof WorldRoute
   '/codex/$slug': typeof CodexSlugRoute
   '/market/$slug': typeof MarketSlugRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/codex': typeof CodexRouteWithChildren
   '/market': typeof MarketRouteWithChildren
   '/relics': typeof RelicsRoute
+  '/weeklies': typeof WeekliesRoute
   '/world': typeof WorldRoute
   '/codex/$slug': typeof CodexSlugRoute
   '/market/$slug': typeof MarketSlugRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/codex'
     | '/market'
     | '/relics'
+    | '/weeklies'
     | '/world'
     | '/codex/$slug'
     | '/market/$slug'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
     | '/'
     | '/arsenal'
     | '/relics'
+    | '/weeklies'
     | '/world'
     | '/codex/$slug'
     | '/market/$slug'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/codex'
     | '/market'
     | '/relics'
+    | '/weeklies'
     | '/world'
     | '/codex/$slug'
     | '/market/$slug'
@@ -149,6 +161,7 @@ export interface RootRouteChildren {
   CodexRoute: typeof CodexRouteWithChildren
   MarketRoute: typeof MarketRouteWithChildren
   RelicsRoute: typeof RelicsRoute
+  WeekliesRoute: typeof WeekliesRoute
   WorldRoute: typeof WorldRoute
 }
 
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/relics'
       fullPath: '/relics'
       preLoaderRoute: typeof RelicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/weeklies': {
+      id: '/weeklies'
+      path: '/weeklies'
+      fullPath: '/weeklies'
+      preLoaderRoute: typeof WeekliesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/world': {
@@ -258,6 +278,7 @@ const rootRouteChildren: RootRouteChildren = {
   CodexRoute: CodexRouteWithChildren,
   MarketRoute: MarketRouteWithChildren,
   RelicsRoute: RelicsRoute,
+  WeekliesRoute: WeekliesRoute,
   WorldRoute: WorldRoute,
 }
 export const routeTree = rootRouteImport

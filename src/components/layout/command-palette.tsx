@@ -1,12 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Command } from "cmdk";
-import { BookOpen, Compass, Crosshair, Shield, Sparkles, Store } from "lucide-react";
+import { BookOpen, Compass, Crosshair, ListChecks, Shield, Sparkles, Store } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useCodex, useMarketCatalog } from "@/lib/wf/hooks";
 
 const PAGES = [
   { to: "/", label: "Command", icon: Compass },
   { to: "/world", label: "World State", icon: Crosshair },
+  { to: "/weeklies", label: "Weeklies", icon: ListChecks },
   { to: "/codex", label: "Codex", icon: BookOpen },
   { to: "/market", label: "Market", icon: Store },
   { to: "/relics", label: "Relics", icon: Sparkles },

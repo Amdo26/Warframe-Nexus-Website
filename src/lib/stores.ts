@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { periodStart, type Cadence } from "@/lib/periods";
 import type { Platform } from "@/lib/wf/types";
+
+export type CustomTask = {
+  id: string;
+  title: string;
+  cadence: Cadence;
+};
 
 export type OwnedEntry = {
   slug: string;
@@ -28,6 +35,18 @@ type NexusState = {
   markProgress: (item: OwnedEntry, next: { owned?: boolean; mastered?: boolean }) => void;
   foundry: WishItem[];
   toggleFoundry: (item: WishItem) => void;
+  /** Weeklies checklist: task id -> start (ms, UTC) of the period it was ticked in. */
+  checkDone: Record<string, number>;
+  checkHidden: string[];
+  checkCustom: CustomTask[];
+  hideDone: boolean;
+  toggleCheck: (id: string, cadence: Cadence) => void;
+  resetChecks: (ids: string[]) => void;
+  hideTask: (id: string) => void;
+  unhideAllTasks: () => void;
+  setHideDone: (value: boolean) => void;
+  addCustomTask: (title: string, cadence: Cadence) => void;
+  removeCustomTask: (id: string) => void;
 };
 
 export const useNexus = create<NexusState>()(
@@ -85,6 +104,42 @@ export const useNexus = create<NexusState>()(
           foundry: exists
             ? get().foundry.filter((w) => w.slug !== item.slug)
             : [{ ...item }, ...get().foundry].slice(0, 40),
+        });
+      },
+      checkDone: {},
+      checkHidden: [],
+      checkCustom: [],
+      hideDone: false,
+      toggleCheck: (id, cadence) => {
+        const start = periodStart(cadence);
+        const next = { ...get().checkDone };
+        if (next[id] === start) delete next[id];
+        else next[id] = start;
+        set({ checkDone: next });
+      },
+      resetChecks: (ids) => {
+        const next = { ...get().checkDone };
+        for (const id of ids) delete next[id];
+        set({ checkDone: next });
+      },
+      hideTask: (id) => {
+        if (get().checkHidden.includes(id)) return;
+        set({ checkHidden: [...get().checkHidden, id] });
+      },
+      unhideAllTasks: () => set({ checkHidden: [] }),
+      setHideDone: (value) => set({ hideDone: value }),
+      addCustomTask: (title, cadence) => {
+        const clean = title.trim().slice(0, 80);
+        if (!clean || get().checkCustom.length >= 40) return;
+        const id = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+        set({ checkCustom: [...get().checkCustom, { id, title: clean, cadence }] });
+      },
+      removeCustomTask: (id) => {
+        const done = { ...get().checkDone };
+        delete done[id];
+        set({
+          checkCustom: get().checkCustom.filter((t) => t.id !== id),
+          checkDone: done,
         });
       },
     }),
