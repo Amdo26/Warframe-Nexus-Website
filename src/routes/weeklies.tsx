@@ -4,6 +4,7 @@ import {
   ChevronDown,
   EyeOff,
   ListChecks,
+  MapPin,
   Plus,
   RotateCcw,
   X,
@@ -17,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { nextReset, periodStart, type Cadence } from "@/lib/periods";
 import { useHasHydrated, useNexus } from "@/lib/stores";
 import { GROUPS, TASKS } from "@/lib/weeklies";
+import { isLive } from "@/lib/wf/format";
 import { useNow, useWorldState } from "@/lib/wf/hooks";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +28,13 @@ type Row = {
   id: string;
   title: string;
   detail: string;
+  where?: string;
   cadence: Cadence;
   icon: LucideIcon;
   reward?: string;
   tag?: string;
+  itemsLabel?: string;
+  items?: string[];
   custom?: boolean;
 };
 
@@ -68,8 +73,11 @@ function WeekliesPage() {
       </>
     );
   }
+  const liveItems: Record<string, { label: string; items: string[] }> = {};
   if (w?.trader) {
-    live["baro"] = w.trader.active ? (
+    const traderActive =
+      now >= new Date(w.trader.activation).getTime() && isLive(w.trader.expiry, now);
+    live["baro"] = traderActive ? (
       <>
         At {w.trader.location} · leaves in <Countdown expiry={w.trader.expiry} compact />
       </>
@@ -78,6 +86,20 @@ function WeekliesPage() {
         Arrives in <Countdown expiry={w.trader.activation} compact />
       </>
     );
+    if (traderActive && w.trader.inventory.length) {
+      liveItems["baro"] = {
+        label: "his full stock",
+        items: w.trader.inventory.map((it) => {
+          const price = [
+            it.ducats ? `${it.ducats.toLocaleString()} ducats` : "",
+            it.credits ? `${it.credits.toLocaleString()} cr` : "",
+          ]
+            .filter(Boolean)
+            .join(" + ");
+          return price ? `${it.item} — ${price}` : it.item;
+        }),
+      };
+    }
   }
 
   const groupRows = (groupId: string): Row[] => TASKS.filter((t) => t.group === groupId);
@@ -136,11 +158,13 @@ function WeekliesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="font-display text-[0.7rem] uppercase tracking-[0.28em] text-accent">Companion</p>
+        <p className="font-display text-[0.7rem] uppercase tracking-[0.28em] text-accent">
+          Companion
+        </p>
         <h1 className="mt-1 font-display text-4xl tracking-[0.12em]">WEEKLIES</h1>
         <p className="mt-2 max-w-2xl text-muted">
-          Everything worth doing each week, in one checklist. Ticks reset by themselves when Warframe
-          resets and stay on this device.
+          Everything worth doing each week, in one checklist. Ticks reset by themselves when
+          Warframe resets and stay on this device.
         </p>
       </header>
 
@@ -151,7 +175,11 @@ function WeekliesPage() {
           done={weekly.done}
           total={weekly.total}
           resetIso={new Date(weeklyResetAt).toISOString()}
-          resetNote={hydrated ? `Mon 00:00 UTC · your time ${localReset(weeklyResetAt, true)}` : "Mon 00:00 UTC"}
+          resetNote={
+            hydrated
+              ? `Mon 00:00 UTC · your time ${localReset(weeklyResetAt, true)}`
+              : "Mon 00:00 UTC"
+          }
         />
         <SummaryCard
           label="Today"
@@ -159,7 +187,9 @@ function WeekliesPage() {
           done={daily.done}
           total={daily.total}
           resetIso={new Date(dailyResetAt).toISOString()}
-          resetNote={hydrated ? `00:00 UTC · your time ${localReset(dailyResetAt, false)}` : "00:00 UTC"}
+          resetNote={
+            hydrated ? `00:00 UTC · your time ${localReset(dailyResetAt, false)}` : "00:00 UTC"
+          }
         />
         <div className="rounded-2xl bg-surface p-4 hairline">
           <p className="font-display text-[0.62rem] uppercase tracking-[0.16em] text-subtle">
@@ -180,7 +210,9 @@ function WeekliesPage() {
               />
             ))}
           </div>
-          <p className="mt-3 text-xs text-subtle">Shards collected from this week&apos;s sources.</p>
+          <p className="mt-3 text-xs text-subtle">
+            Shards collected from this week&apos;s sources.
+          </p>
         </div>
       </div>
 
@@ -268,7 +300,10 @@ function WeekliesPage() {
                 {doneCount}/{rows.length}
               </span>
               <ChevronDown
-                className={cn("size-4 text-subtle transition-transform duration-200", !open && "-rotate-90")}
+                className={cn(
+                  "size-4 text-subtle transition-transform duration-200",
+                  !open && "-rotate-90",
+                )}
               />
             </button>
             <div className="h-0.5 bg-elevated">
@@ -282,7 +317,15 @@ function WeekliesPage() {
                 {shown.map((row) => (
                   <TaskRow
                     key={row.id}
-                    row={row}
+                    row={
+                      liveItems[row.id]
+                        ? {
+                            ...row,
+                            itemsLabel: liveItems[row.id].label,
+                            items: liveItems[row.id].items,
+                          }
+                        : row
+                    }
                     checked={isDone(row)}
                     note={live[row.id]}
                     onToggle={() => toggleCheck(row.id, row.cadence)}
@@ -291,7 +334,9 @@ function WeekliesPage() {
                 ))}
                 {shown.length === 0 ? (
                   <p className="px-1 py-3 text-sm text-muted md:col-span-2">
-                    {rows.length ? "All done here — nice work, Tenno." : "Nothing in this section yet."}
+                    {rows.length
+                      ? "All done here — nice work, Tenno."
+                      : "Nothing in this section yet."}
                   </p>
                 ) : null}
               </div>
@@ -301,8 +346,8 @@ function WeekliesPage() {
       })}
 
       <p className="text-xs text-subtle">
-        You don&apos;t need to do everything — pick what helps your goals. Task list based on the community
-        Warframe weekly checklist picture; reward notes are from the Warframe wiki.
+        You don&apos;t need to do everything — pick what helps your goals. Task list based on the
+        community Warframe weekly checklist picture; reward notes are from the Warframe wiki.
       </p>
     </div>
   );
@@ -322,10 +367,11 @@ function TaskRow({
   onRemove: () => void;
 }) {
   const Icon = row.icon;
+  const [open, setOpen] = useState(false);
   return (
     <div
       className={cn(
-        "group flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors duration-200",
+        "group flex items-start gap-3 self-start rounded-xl border px-3 py-2.5 transition-colors duration-200",
         checked
           ? "border-ok/25 bg-ok/5"
           : "border-border bg-elevated/60 hover:border-border-strong hover:bg-elevated",
@@ -338,9 +384,11 @@ function TaskRow({
         aria-label={`${row.title} — ${checked ? "done" : "not done"}`}
         onClick={onToggle}
         className={cn(
-          "flex size-7 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-150",
+          "mt-1 flex size-7 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-150",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-90",
-          checked ? "border-ok bg-ok text-bg" : "border-border-strong text-transparent hover:border-accent",
+          checked
+            ? "border-ok bg-ok text-bg"
+            : "border-border-strong text-transparent hover:border-accent",
         )}
       >
         <Check className="size-4" strokeWidth={3} />
@@ -355,22 +403,53 @@ function TaskRow({
         <Icon className="size-[1.15rem]" />
       </span>
 
-      <button type="button" onClick={onToggle} className="min-w-0 flex-1 text-left" tabIndex={-1}>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span
-            className={cn(
-              "font-display text-sm tracking-wide transition-colors",
-              checked ? "text-subtle line-through decoration-1" : "text-fg",
-            )}
-          >
-            {row.title}
+      <div className="min-w-0 flex-1">
+        <button type="button" onClick={onToggle} className="block w-full text-left" tabIndex={-1}>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span
+              className={cn(
+                "font-display text-sm tracking-wide transition-colors",
+                checked ? "text-subtle line-through decoration-1" : "text-fg",
+              )}
+            >
+              {row.title}
+            </span>
+            {row.reward ? <Badge tone={checked ? "default" : "accent"}>{row.reward}</Badge> : null}
+            {row.tag ? <Badge tone="outline">{row.tag}</Badge> : null}
           </span>
-          {row.reward ? <Badge tone={checked ? "default" : "accent"}>{row.reward}</Badge> : null}
-          {row.tag ? <Badge tone="outline">{row.tag}</Badge> : null}
-        </span>
-        <span className="block text-xs leading-snug text-subtle">{row.detail}</span>
-        {note ? <span className="mt-0.5 block text-xs text-live">{note}</span> : null}
-      </button>
+          <span className="block text-xs leading-snug text-subtle">{row.detail}</span>
+          {row.where ? (
+            <span className="mt-1 flex items-start gap-1.5 text-xs leading-snug text-muted">
+              <MapPin className="mt-0.5 size-3.5 shrink-0 text-accent" aria-hidden />
+              <span>
+                <span className="sr-only">Where: </span>
+                {row.where}
+              </span>
+            </span>
+          ) : null}
+          {note ? <span className="mt-0.5 block text-xs text-live">{note}</span> : null}
+        </button>
+        {row.items?.length ? (
+          <div className="mt-1.5">
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              className="flex items-center gap-1 text-left font-display text-[0.65rem] uppercase tracking-[0.14em] text-accent hover:text-fg"
+            >
+              <ChevronDown className={cn("size-3.5 transition-transform", !open && "-rotate-90")} />
+              {open ? "Hide" : "Show"} {row.itemsLabel ?? "details"} ({row.items.length})
+            </button>
+            {open ? (
+              <ul className="mt-2 space-y-1 border-l border-border pl-3 text-xs text-muted">
+                {row.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
       <button
         type="button"
@@ -425,7 +504,9 @@ function SummaryCard({
         </span>
       </div>
       <div className="min-w-0">
-        <p className="font-display text-[0.62rem] uppercase tracking-[0.16em] text-subtle">{label}</p>
+        <p className="font-display text-[0.62rem] uppercase tracking-[0.16em] text-subtle">
+          {label}
+        </p>
         <p className="tabular font-display text-2xl text-fg">
           {done}
           <span className="text-lg text-muted">/{total}</span>

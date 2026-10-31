@@ -87,14 +87,26 @@ function Command() {
                 <Countdown expiry={trader.active ? trader.expiry : trader.activation} />
               </p>
               {trader.active && trader.inventory.length ? (
-                <ul className="space-y-1 text-sm text-muted">
-                  {trader.inventory.slice(0, 6).map((it) => (
-                    <li key={it.item} className="flex justify-between gap-2">
-                      <span className="truncate text-fg">{it.item}</span>
-                      <span className="tabular text-accent">{it.ducats} ducats</span>
-                    </li>
-                  ))}
-                </ul>
+                <div>
+                  <p className="mb-1 font-display text-[0.65rem] uppercase tracking-[0.16em] text-subtle">
+                    {trader.inventory.length} items for sale
+                  </p>
+                  <ul className="max-h-72 space-y-1 overflow-y-auto pr-1 text-sm text-muted">
+                    {trader.inventory.map((it, i) => (
+                      <li key={`${it.item}-${i}`} className="flex justify-between gap-2">
+                        <span className="min-w-0 flex-1 text-fg">{it.item}</span>
+                        <span className="tabular shrink-0 text-right text-accent">
+                          {[
+                            it.ducats ? `${it.ducats.toLocaleString()} ducats` : "",
+                            it.credits ? `${it.credits.toLocaleString()} cr` : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" + ") || "—"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : (
                 <p className="text-sm text-subtle">Inventory posts when he docks.</p>
               )}
