@@ -2,26 +2,36 @@ import {
   Bird,
   CalendarDays,
   Cog,
+  Crosshair,
   Droplet,
+  Feather,
+  Flame,
   Gem,
   Gift,
+  Heart,
   Hourglass,
   Layers,
   LogIn,
+  Mountain,
   Orbit,
+  Package,
   Radio,
   Repeat,
   Shield,
+  Ship,
   Skull,
+  Snowflake,
   Sparkles,
+  Store,
   Swords,
   Trophy,
+  Users,
   Waves,
   type LucideIcon,
 } from "lucide-react";
-import type { Cadence } from "@/lib/periods";
+import type { Cadence, ResetRule } from "@/lib/periods";
 
-export type GroupId = "shards" | "rewards" | "kuva" | "standing" | "daily";
+export type GroupId = "shards" | "rewards" | "duviri" | "kuva" | "standing" | "other" | "daily";
 
 export type ChecklistTask = {
   id: string;
@@ -30,6 +40,8 @@ export type ChecklistTask = {
   /** Where in the game to do it / find the vendor. */
   where: string;
   cadence: Cadence;
+  /** Only for daily tasks that do not reset at 00:00 UTC (the Sortie). */
+  rule?: ResetRule;
   group: GroupId;
   icon: LucideIcon;
   /** Short reward chip, e.g. "35K Kuva". */
@@ -63,6 +75,13 @@ export const GROUPS: {
     cadence: "weekly",
   },
   {
+    id: "duviri",
+    title: "Duviri",
+    kicker: "Weekly",
+    blurb: "The Circuit (normal and Steel Path) and Acrithis.",
+    cadence: "weekly",
+  },
+  {
     id: "kuva",
     title: "Kuva & Rivens",
     kicker: "Weekly",
@@ -74,6 +93,13 @@ export const GROUPS: {
     title: "Nightwave",
     kicker: "Weekly",
     blurb: "Weekly acts and the Cred shop.",
+    cadence: "weekly",
+  },
+  {
+    id: "other",
+    title: "Other tasks",
+    kicker: "Rotating",
+    blurb: "Shops that rotate during the week. Tick once you've checked this rotation.",
     cadence: "weekly",
   },
   {
@@ -237,13 +263,27 @@ export const TASKS: ChecklistTask[] = [
   },
   {
     id: "circuit",
-    title: "The Circuit",
-    detail: "Duviri's weekly Circuit reward pools.",
-    where: "Duviri: select Duviri in the Navigation console and start The Circuit.",
+    title: "The Circuit — Normal",
+    detail:
+      "Weekly Circuit run. You choose your reward from this week's rotation of Warframes — each one is a set of Warframe component rewards.",
+    where:
+      "Duviri: select Duviri in the Navigation console (or the Dormizone) and start The Circuit.",
     cadence: "weekly",
-    group: "rewards",
+    group: "duviri",
     icon: Repeat,
-    reward: "Components + Incarnon Genesis",
+    reward: "Warframe components",
+  },
+  {
+    id: "circuit-steel-path",
+    title: "The Circuit — Steel Path",
+    detail:
+      "Same Circuit on the Steel Path (needs Steel Path unlocked). This week's rotation pays Incarnon Genesis adapters for the weapons shown below.",
+    where:
+      "Duviri: select Duviri in the Navigation console, then switch The Circuit to Steel Path before you start.",
+    cadence: "weekly",
+    group: "duviri",
+    icon: Flame,
+    reward: "Incarnon Genesis",
   },
   {
     id: "acrithis",
@@ -253,7 +293,7 @@ export const TASKS: ChecklistTask[] = [
     where:
       "Dormizone (aboard the Zariman Ten Zero): go through the Void doorway in the bedroom to the Duviri room. Reach the Dormizone via Navigation → Duviri.",
     cadence: "weekly",
-    group: "rewards",
+    group: "duviri",
     icon: Sparkles,
     reward: "5 weekly items",
     itemsLabel: "items seen recently",
@@ -266,6 +306,89 @@ export const TASKS: ChecklistTask[] = [
       "Forma",
       "Orokin Catalysts, Reactors and Arcanes also appear in the pool (per weekly guides)",
     ],
+  },
+  {
+    id: "break-narmer",
+    title: "Break Narmer",
+    detail:
+      "Complete Kahl's weekly mission to earn Stock, the currency you spend with Kahl and Chipper.",
+    where:
+      "Drifter's Camp (Veilbreaker quest needed): talk to Kahl-175 in Kahl's Garrison and pick the weekly Break Narmer mission. Resets Monday 00:00 UTC.",
+    cadence: "weekly",
+    group: "rewards",
+    icon: Swords,
+    reward: "Stock",
+  },
+  {
+    id: "cryobells",
+    title: "Cryobells",
+    detail:
+      "Harvest 3 Cryobells from the ice pillar (3 per weekly reset, you can hold up to 6). You need them to run Icebind missions.",
+    where: "Yuvan Peak (Zariman): the ice pillar is at the top of the relay area.",
+    cadence: "weekly",
+    group: "rewards",
+    icon: Snowflake,
+    reward: "3 Cryobells",
+  },
+  {
+    id: "icebind",
+    title: "The Icebind",
+    detail: "Spend Cryobells to run six-player Icebind missions (up to 3 clears per week).",
+    where: "Yuvan Peak (Zariman): talk to Cephalon Melica.",
+    cadence: "weekly",
+    group: "rewards",
+    icon: Users,
+    reward: "Riven Splicer + Kuva",
+    itemsLabel: "rewards",
+    items: ["Riven Splicer", "A Kuva roll", "A Crested Frozen Chest item"],
+  },
+  {
+    id: "descendia",
+    title: "The Descendia — Normal",
+    detail:
+      "The Tower game mode: climb Infernums for rewards. Floor modifiers (Penances) and the Blessings you get rotate weekly.",
+    where:
+      "Orbiter: open the Navigation console, switch to the Dark Refractory and choose The Descendia. Unlocked by The Old Peace.",
+    cadence: "weekly",
+    group: "rewards",
+    icon: Mountain,
+    reward: "Arcanes + resources",
+    itemsLabel: "rewards by Infernum",
+    items: [
+      "Infernums 2, 4, 9, 11, 16, 18: Credits cache, Endo, Vosfor, Ignia, Maphica",
+      "Infernums 6, 13, 20: Arcanes (some of the rarest, from the Eidolons)",
+      "Infernum 21: Forma Blueprint, Primary, Secondary, Melee and Amp Arcane Adapters",
+    ],
+  },
+  {
+    id: "descendia-steel-path",
+    title: "The Descendia — Steel Path",
+    detail: "The same Tower on the Steel Path, with tougher enemies and better payouts.",
+    where:
+      "Orbiter: Navigation console → Dark Refractory → The Descendia, then pick the Steel Path version.",
+    cadence: "weekly",
+    group: "rewards",
+    icon: Mountain,
+    reward: "Exclusive Arcanes",
+    itemsLabel: "rewards by Infernum",
+    items: [
+      "Infernums 2, 9, 16: Ignia, Maphica",
+      "Infernums 4, 11: Forma Blueprint, Riven Mods, Arcane Adapters, 3-day boosters",
+      "Infernums 6, 13, 20: Descendia-exclusive Arcanes",
+      "Infernum 18: Steel Essence",
+      "Infernum 21: Orokin Catalyst and Reactor Blueprints, Omni Forma Blueprint, Eidolon Lens Blueprints, Archon Shards",
+    ],
+  },
+  {
+    id: "kaya-pix",
+    title: "Kaya — Pix Chips",
+    detail:
+      "Trade Pix Chips for one Arcane per week (5 Pix Chips each): Universal Fallout, Hot Shot or Escapist.",
+    where: "Höllvania Central Mall: talk to Kaya Velasco.",
+    cadence: "weekly",
+    group: "rewards",
+    icon: Store,
+    reward: "1 Arcane",
   },
   {
     id: "baro",
@@ -302,6 +425,47 @@ export const TASKS: ChecklistTask[] = [
     icon: Droplet,
     reward: "35K Kuva",
   },
+  {
+    id: "nightcap",
+    title: "Nightcap",
+    detail: "Trade Fergolyte for Kuva and Ayatan Sculptures.",
+    where: "Fortuna, Venus: find Nightcap in the settlement (needs The New War).",
+    cadence: "weekly",
+    group: "kuva",
+    icon: Droplet,
+    reward: "Kuva + Ayatan",
+  },
+  {
+    id: "aspirant-zorba",
+    title: "Aspirant Zorba",
+    detail: "Trade Atramentum for Kuva.",
+    where: "In any Relay: find Aspirant Zorba (needs The Chains of Harrow).",
+    cadence: "weekly",
+    group: "kuva",
+    icon: Droplet,
+    reward: "Kuva",
+  },
+  {
+    id: "hunhow",
+    title: "Hunhow",
+    detail: "Trade Emerald and Crimson Talents for Kuva.",
+    where: "Pontis Tower, Uranus: talk to Hunhow (needs Jade Shadows: Constellations).",
+    cadence: "weekly",
+    group: "kuva",
+    icon: Droplet,
+    reward: "Kuva",
+  },
+  {
+    id: "cephalon-melica",
+    title: "Cephalon Melica",
+    detail:
+      "Trade Entropic Kuva for Kuva. Entropic Kuva drops from Entropic Eximus enemies in Zariman missions.",
+    where: "Chrysalith (Zariman): the console past the docking bays.",
+    cadence: "weekly",
+    group: "kuva",
+    icon: Droplet,
+    reward: "Kuva",
+  },
 
   // ── Nightwave ──
   {
@@ -334,6 +498,65 @@ export const TASKS: ChecklistTask[] = [
     icon: Gem,
   },
 
+  // ── Other tasks ──
+  {
+    id: "mend-family",
+    title: "Mend the Family",
+    detail:
+      "Buy Entrati Family Tokens from Grandmother's brews and medicines (she asks for Deimos resources). The offers are randomised and change every few hours.",
+    where: "Necralisk, Deimos: inside the infested flower to the right of the entrance.",
+    cadence: "weekly",
+    group: "other",
+    icon: Heart,
+    reward: "Family Tokens",
+    tag: "Rotates",
+  },
+  {
+    id: "voidplumes",
+    title: "Trade for Voidplumes",
+    detail:
+      "Buy Voidplume Pinions from Archimedean Yonta. Her trades rotate every 8 hours. Pinions go back to her for 35K Kuva.",
+    where: "Chrysalith (Zariman): fast travel to Archimedean Yonta, or press L to find her.",
+    cadence: "weekly",
+    group: "other",
+    icon: Feather,
+    tag: "8-hour rotation",
+  },
+  {
+    id: "voca",
+    title: "Trade for Voca",
+    detail: "Check Loid's trades for Voca. His offers rotate every 8 hours.",
+    where: "Sanctum Anatomica, Deimos: talk to Loid.",
+    cadence: "weekly",
+    group: "other",
+    icon: Package,
+    tag: "8-hour rotation",
+  },
+  {
+    id: "tenet-shop",
+    title: "Tenet weapons",
+    detail:
+      "Check Ergo Glast's shop for a good Valence bonus (40 Corrupted Holokeys each). The shop and its random bonuses change every 4 days at 00:00 UTC.",
+    where: "In any Relay: talk to Ergo Glast.",
+    cadence: "weekly",
+    group: "other",
+    icon: Crosshair,
+    tag: "4-day rotation",
+    itemsLabel: "weapons include",
+    items: ["Tenet Agendus", "Tenet Exec", "Tenet Livia", "Tenet Grigori", "Tenet Ferrox"],
+  },
+  {
+    id: "coda-shop",
+    title: "Coda weapons",
+    detail:
+      "Check Eleanor's shop for a good Valence bonus (10 Live Heartcells each). Two sets of Coda weapons alternate every 4 days. Her current stock isn't in the live data feed, so check it in game.",
+    where: "Höllvania Central Mall: talk to Eleanor Nightingale.",
+    cadence: "weekly",
+    group: "other",
+    icon: Ship,
+    tag: "4-day rotation",
+  },
+
   // ── Daily ──
   {
     id: "daily-tribute",
@@ -352,6 +575,57 @@ export const TASKS: ChecklistTask[] = [
     cadence: "daily",
     group: "daily",
     icon: Trophy,
+  },
+  {
+    id: "daily-sortie",
+    title: "Sortie",
+    detail:
+      "Three missions, then the reward. It changes at 12:00 New York time (16:00 UTC in US summer, otherwise 17:00 UTC), so your tick resets then.",
+    where: "Open the Navigation menu and pick Sortie.",
+    cadence: "daily",
+    rule: "sortie",
+    group: "daily",
+    icon: Skull,
+  },
+  {
+    id: "daily-acrithis",
+    title: "Acrithis — daily offers",
+    detail: "Check the daily Arcane and Captura offering in Acrithis's shop.",
+    where:
+      "Dormizone (aboard the Zariman Ten Zero): through the Void doorway in the bedroom to the Duviri room.",
+    cadence: "daily",
+    group: "daily",
+    icon: Sparkles,
+  },
+  {
+    id: "daily-drifter",
+    title: "Drifter Intrinsics",
+    detail:
+      "Opportunity rank 9 (High Value Vendor) puts one Arcane per day in Acrithis's stock. Keep spending Opportunity points on it.",
+    where: "Dormizone, Duviri room: use the well of golden rings in Teshin's Cave.",
+    cadence: "daily",
+    group: "daily",
+    icon: Layers,
+  },
+  {
+    id: "daily-ticker",
+    title: "Ticker — railjack crew",
+    detail: "Check the Railjack crew available to hire. The recruits refresh every day.",
+    where:
+      "Fortuna, Venus: the raised platform above The Business's shop. Needs Rising Tide and Command Intrinsics rank 1.",
+    cadence: "daily",
+    group: "daily",
+    icon: Users,
+  },
+  {
+    id: "daily-marie",
+    title: "Marie",
+    detail:
+      "Buy Tektolyst mods and arcanes, and Perita and Descendia resources. Her stock includes a daily Ren Hypercore and Operator mods.",
+    where: "Sanctum Anatomica, Deimos: talk to Marie.",
+    cadence: "daily",
+    group: "daily",
+    icon: Store,
   },
   {
     id: "daily-nightwave",

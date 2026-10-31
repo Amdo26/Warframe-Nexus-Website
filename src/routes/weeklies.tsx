@@ -15,12 +15,19 @@ import { Countdown } from "@/components/hud/countdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { nextReset, periodStart, type Cadence } from "@/lib/periods";
+import { nextReset, periodStart, type Cadence, type ResetRule } from "@/lib/periods";
 import { useHasHydrated, useNexus } from "@/lib/stores";
 import { GROUPS, TASKS } from "@/lib/weeklies";
 import { isLive } from "@/lib/wf/format";
 import { useNow, useWorldState } from "@/lib/wf/hooks";
 import { cn } from "@/lib/utils";
+
+/** Weekly Archon → the Archon Shard colour its mission pays out. */
+const ARCHON_SHARD: [string, string][] = [
+  ["amar", "Crimson"],
+  ["nira", "Amber"],
+  ["boreal", "Azure"],
+];
 
 export const Route = createFileRoute("/weeklies")({ component: WeekliesPage });
 
@@ -30,6 +37,7 @@ type Row = {
   detail: string;
   where?: string;
   cadence: Cadence;
+  rule?: ResetRule;
   icon: LucideIcon;
   reward?: string;
   tag?: string;
@@ -59,13 +67,31 @@ function WeekliesPage() {
   const [draft, setDraft] = useState("");
   const [draftCadence, setDraftCadence] = useState<Cadence>("weekly");
 
-  const isDone = (row: Row) => hydrated && done[row.id] === periodStart(row.cadence, now);
+  const isDone = (row: Row) => hydrated && done[row.id] === periodStart(row.cadence, now, row.rule);
   const isHidden = (id: string) => hydrated && hidden.includes(id);
 
   // Live notes pulled from the world state, shown under the matching task.
   const w = world.data;
   const live: Record<string, ReactNode> = {};
-  if (w?.archonHunt?.boss) live["archon-hunt"] = <>This week: {w.archonHunt.boss}</>;
+  if (w?.archonHunt?.boss) {
+    const boss = w.archonHunt.boss;
+    const shard = ARCHON_SHARD.find(([key]) => boss.toLowerCase().includes(key))?.[1];
+    live["archon-hunt"] = (
+      <>
+        This week: {boss}
+        {shard ? ` · ${shard} Archon Shard` : ""}
+      </>
+    );
+  }
+  if (w?.sortie?.boss) {
+    live["daily-sortie"] = (
+      <>
+        Today: {w.sortie.boss}
+        {w.sortie.faction ? ` (${w.sortie.faction})` : ""} · ends in{" "}
+        <Countdown expiry={w.sortie.expiry} compact />
+      </>
+    );
+  }
   if (w?.steelPath) {
     live["teshin"] = (
       <>
@@ -74,6 +100,14 @@ function WeekliesPage() {
     );
   }
   const liveItems: Record<string, { label: string; items: string[] }> = {};
+  if (w?.duviriChoices?.normal?.length) {
+    liveItems["circuit"] = { label: "this week's choices", items: w.duviriChoices.normal };
+    live["circuit"] = <>This week: {w.duviriChoices.normal.join(", ")}</>;
+  }
+  if (w?.duviriChoices?.hard?.length) {
+    liveItems["circuit-steel-path"] = { label: "this week's choices", items: w.duviriChoices.hard };
+    live["circuit-steel-path"] = <>This week: {w.duviriChoices.hard.join(", ")}</>;
+  }
   if (w?.trader) {
     const traderActive =
       now >= new Date(w.trader.activation).getTime() && isLive(w.trader.expiry, now);
@@ -328,7 +362,7 @@ function WeekliesPage() {
                     }
                     checked={isDone(row)}
                     note={live[row.id]}
-                    onToggle={() => toggleCheck(row.id, row.cadence)}
+                    onToggle={() => toggleCheck(row.id, row.cadence, row.rule)}
                     onRemove={() => (row.custom ? removeCustomTask(row.id) : hideTask(row.id))}
                   />
                 ))}

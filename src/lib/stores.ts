@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { periodStart, type Cadence } from "@/lib/periods";
+import { periodStart, type Cadence, type ResetRule } from "@/lib/periods";
 import type { Platform } from "@/lib/wf/types";
 
 export type CustomTask = {
@@ -40,7 +40,7 @@ type NexusState = {
   checkHidden: string[];
   checkCustom: CustomTask[];
   hideDone: boolean;
-  toggleCheck: (id: string, cadence: Cadence) => void;
+  toggleCheck: (id: string, cadence: Cadence, rule?: ResetRule) => void;
   resetChecks: (ids: string[]) => void;
   hideTask: (id: string) => void;
   unhideAllTasks: () => void;
@@ -110,8 +110,8 @@ export const useNexus = create<NexusState>()(
       checkHidden: [],
       checkCustom: [],
       hideDone: false,
-      toggleCheck: (id, cadence) => {
-        const start = periodStart(cadence);
+      toggleCheck: (id, cadence, rule) => {
+        const start = periodStart(cadence, Date.now(), rule);
         const next = { ...get().checkDone };
         if (next[id] === start) delete next[id];
         else next[id] = start;
